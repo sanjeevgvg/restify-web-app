@@ -9,6 +9,9 @@ import { WithUserRequest } from '../types/request-type';
 import { Controller, Get, interfaces, Post, Put } from 'inversify-restify-utils';
 import { inject, injectable } from 'inversify';
 import { Request } from 'restify';
+import { Question } from '../../database/models/question';
+import { QuestionType } from '../../database/models/question-type';
+import { getRepository } from 'typeorm';
 
 @Controller('/user')
 @injectable()
@@ -67,5 +70,22 @@ export class UserController extends ControllerBase implements interfaces.Control
         const response = new ResponseViewModel<User>();
         response.data = new User();
         return response;
+    }
+
+    @Get('/question-types')
+    public async questionTypes(): Promise<QuestionType[]> {
+        const questionTypes = await getRepository(QuestionType).find();
+
+        return questionTypes;
+    }
+
+    @Get('/questions')
+    public async questions(): Promise<Question[]> {
+        const questions = await getRepository(Question)
+            .createQueryBuilder('question')
+            .innerJoinAndSelect('question.type', 'type')
+            .getMany();
+
+        return questions;
     }
 }
