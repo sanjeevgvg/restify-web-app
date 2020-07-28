@@ -1,4 +1,5 @@
 import * as cluster from 'cluster';
+import * as corsMiddleware from 'restify-cors-middleware';
 import * as os from 'os';
 import * as restify from 'restify';
 import Bugsnag from '@bugsnag/js';
@@ -59,6 +60,16 @@ export class Bootstrapper {
                     );
                     app.use(restify.plugins.queryParser());
                     PassportMiddleWare.init();
+
+                    const cors = corsMiddleware({
+                        origins: ['*'],
+                        allowHeaders: ['Authorization'],
+                        exposeHeaders: ['Authorization'],
+                    });
+
+                    app.pre(cors.preflight);
+                    app.use(cors.actual);
+
                     app.listen(env.PORT);
                     if (bugSnagMiddleware && env.IS_BUGSNAG_ENABLED) {
                         app.on('restifyError', bugSnagMiddleware.errorHandler);
